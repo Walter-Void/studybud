@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.db.models import Q #Imports a way for me to use or and and on q 
 from django.http import HttpResponse # imports to HttpsResponse to work
 from .models import Room, Topic #Imports Room from the models.py
 from .forms import RoomForm
@@ -13,11 +14,18 @@ from .forms import RoomForm
 
 #Function that shows user Home Page instead of the default page
 def home(request):
-    rooms = Room.objects.all() #overrides the other room list 
+    q = request.GET.get('q') if request.GET.get('q') != None else ''
+
+    rooms = Room.objects.filter(
+        Q(topic__name__icontains = q) |
+        Q(name__icontains = q) |
+        Q(description__icontains = q)
+        ) #overrides the other room list 
     
     topics = Topic.objects.all()
+    room_count = rooms.count()
 
-    context = {'rooms': rooms, 'topics': topics}
+    context = {'rooms': rooms, 'topics': topics, 'room_count' : room_count}
     return render(request, 'base/home.html', context) #Goes into template folder to go to the home html
 
 #Function that show/sends you to a room
