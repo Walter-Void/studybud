@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
 from django.db.models import Q #Imports a way for me to use or and and on q 
+from django.contrib.auth.models import User
 from django.http import HttpResponse # imports to HttpsResponse to work
 from .models import Room, Topic #Imports Room from the models.py
-from .forms import RoomForm
+from .forms import RoomForm #imports Room form to this views
+
 # Create your views here.
 
 #List for rooms
@@ -11,6 +13,19 @@ from .forms import RoomForm
 #    {'id': 2, 'name' : 'Design with me'},
 #    {'id': 3, 'name' : 'Frontend developers'},
 #]
+
+#Function for logging in
+def loginPage(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        # for other videos
+        #try:
+        #    user = User.objects.get(username = username)
+        #except: 
+
+    context = {}
+    return render(request, 'base/login_register.html', context)
 
 #Function that shows user Home Page instead of the default page
 def home(request):
@@ -64,3 +79,4 @@ def deleteRoom(request, pk):
         room.delete()
         return redirect('home')
     return render(request, 'base/delete.html', {'obj': room})
+
