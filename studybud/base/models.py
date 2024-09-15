@@ -18,6 +18,9 @@ class Room(models.Model):
     updated = models.DateTimeField(auto_now = True) # Shows time 
     created = models.DateTimeField(auto_now_add = True) #shows time of creation  
 
+    class Meta:
+        ordering = ['-updated', '-created']
+
     def __str__(self):
         return self.name
     
