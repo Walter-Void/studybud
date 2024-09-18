@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required #Import helps me restr
 from django.db.models import Q #Imports a way for me to use or and and on q 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout #import authenticate to work on login method 
+from django.contrib.auth.forms import UserCreationForm #Import a form for user to be created
 from django.http import HttpResponse # imports to HttpsResponse to work
 from .models import Room, Topic #Imports Room from the models.py
 from .forms import RoomForm #imports Room form to this views
@@ -20,11 +21,12 @@ from .forms import RoomForm #imports Room form to this views
 
 #Function for logging in
 def loginPage(request):
+    page = 'login'
     if request.user.is_authenticated:
      return redirect('home')
 
     if request.method == "POST":
-        username = request.POST.get('username')
+        username = request.POST.get('username').lower()
         password = request.POST.get('password')
         # for other videos
         try:
@@ -40,13 +42,28 @@ def loginPage(request):
         else:
              messages.error(request, 'User or Password does not exist')
 
-    context = {}
+    context = {'page' : page}
     return render(request, 'base/login_register.html', context)
 
 #Function/method to logout
 def logoutUser(request):
     logout(request)
     return redirect('home')
+
+#Function/method to register a user
+def registerPage(request):
+    form = UserCreationForm()
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit = False)
+            user.username = user.username.lower()
+            user.save()
+            login(request, user)
+            return redirect('home')
+        else:
+            messages.error(request, 'An error occured during registration')
+    return render(request, 'base/login_register.html', {'form' : form})
 
 #Function that shows user Home Page instead of the default page
 def home(request):
