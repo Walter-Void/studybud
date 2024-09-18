@@ -20,6 +20,9 @@ from .forms import RoomForm #imports Room form to this views
 
 #Function for logging in
 def loginPage(request):
+    if request.user.is_authenticated:
+     return redirect('home')
+
     if request.method == "POST":
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -67,6 +70,7 @@ def room(request, pk):
     context = {'room' : room}
     return render(request, 'base/room.html', context) #Goes into template folder to go to the room html
 
+@login_required(login_url = '/login') #only allows user to make a room
 #Function that creates the room display on the Project
 def createRoom(request):
     form = RoomForm()
@@ -78,10 +82,15 @@ def createRoom(request):
     context = {'form': form}
     return render(request, 'base/room_form.html', context) 
 
+@login_required(login_url = '/login') #only allows user to make a room
 #Functions for updating the room
 def updateRoom(request, pk):
     room = Room.objects.get(id =pk)
     form = RoomForm(instance=room)
+
+    if request.user != room.host:
+        return HttpResponse('You are not allowed here!!')
+
     if request.method == "POST":
         form = RoomForm(request.POST, instance = room)
         if form.is_valid():
@@ -90,9 +99,13 @@ def updateRoom(request, pk):
     context = {'form' : form}
     return render(request, 'base/room_form.html', context)
 
+@login_required(login_url = '/login') #only allows user to make a room
 #Function to delete room
 def deleteRoom(request, pk):
     room = Room.objects.get(id = pk)
+    if request.user != room.host:
+        return HttpResponse('You are not allowed here!!')
+    
     if request.method == 'POST':
         room.delete()
         return redirect('home')
