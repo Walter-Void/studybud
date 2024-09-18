@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages #An import to help use show meassages
 from django.db.models import Q #Imports a way for me to use or and and on q 
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout #import authenticate to work on login method 
 from django.http import HttpResponse # imports to HttpsResponse to work
 from .models import Room, Topic #Imports Room from the models.py
 from .forms import RoomForm #imports Room form to this views
+
 
 # Create your views here.
 
@@ -20,9 +23,18 @@ def loginPage(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         # for other videos
-        #try:
-        #    user = User.objects.get(username = username)
-        #except: 
+        try:
+            user = User.objects.get(username = username)
+        except: 
+            messages.error(request, 'User does not exist')
+        
+        user = authenticate(request, username = username, password = password)
+
+        if user is not None: 
+            login(request, user)
+            return redirect('home')
+        else:
+             messages.error(request, 'User or Password does not exist')
 
     context = {}
     return render(request, 'base/login_register.html', context)
