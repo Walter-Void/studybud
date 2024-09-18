@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages #An import to help use show meassages
+from django.contrib.auth.decorators import login_required #Import helps me restrict the user from doing things
 from django.db.models import Q #Imports a way for me to use or and and on q 
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout #import authenticate to work on login method 
@@ -38,6 +39,11 @@ def loginPage(request):
 
     context = {}
     return render(request, 'base/login_register.html', context)
+
+#Function/method to logout
+def logoutUser(request):
+    logout(request)
+    return redirect('home')
 
 #Function that shows user Home Page instead of the default page
 def home(request):
