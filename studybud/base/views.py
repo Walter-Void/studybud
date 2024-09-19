@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout #import authenticate to work on login method 
 from django.contrib.auth.forms import UserCreationForm #Import a form for user to be created
 from django.http import HttpResponse # imports to HttpsResponse to work
-from .models import Room, Topic #Imports Room from the models.py
+from .models import Room, Topic, Message #Imports Room from the models.py
 from .forms import RoomForm #imports Room form to this views
 
 
@@ -84,7 +84,18 @@ def home(request):
 #Function that show/sends you to a room
 def room(request, pk):
     room = Room.objects.get(id =pk)
-    context = {'room' : room}
+    room_messages = room.message_set.all().order_by('-created')
+    participants = room.participants.all()
+    if request.method == 'POST':
+        message = Message.objects.create(
+            user = request.user,
+            room = room,
+            body = request.POST.get('body')
+        )
+        room.participants.add(request.user)
+        return redirect('room', pk = room.id)
+
+    context = {'room' : room, 'room_messages' : room_messages, 'participants': participants}
     return render(request, 'base/room.html', context) #Goes into template folder to go to the room html
 
 @login_required(login_url = '/login') #only allows user to make a room
@@ -128,3 +139,14 @@ def deleteRoom(request, pk):
         return redirect('home')
     return render(request, 'base/delete.html', {'obj': room})
 
+@login_required(login_url = '/login') #only allows user to make a room
+#Function to delete a message on the conversation
+def deleteMessage(request, pk):
+    message = Message.objects.get(id = pk)
+    if request.user != message.user:
+        return HttpResponse('You are not allowed here!!')
+    
+    if request.method == 'POST':
+        message.delete()
+        return redirect('home')
+    return render(request, 'base/delete.html', {'obj': message})
